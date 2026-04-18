@@ -1,0 +1,24 @@
+{
+  "name": "Jefe Bank — Loan Calculator",
+  "short_name": "Jefe Bank",
+  "description": "Loan calculator with trade-in and amortization schedule",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1a2e",
+  "theme_color": "#0f1a2e",
+  "icons": [
+    {
+      "src": "Jefe_bank_iphone_logo.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "Jefe_bank_iphone_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

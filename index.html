@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>Jefe Bank — Loan Calculator</title>
+
+  <!-- iPhone home screen / PWA metadata -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Jefe Bank">
+  <meta name="theme-color" content="#0f1a2e">
+
+  <!-- Home screen icon (the rounded-square version). iOS will auto-mask if needed. -->
+  <link rel="apple-touch-icon" href="Jefe_bank_iphone_logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="Jefe_bank_iphone_logo.png">
+  <link rel="icon" type="image/png" href="Jefe_bank_iphone_logo.png">
+
+  <!-- Optional: web app manifest for Android / PWA parity -->
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    :root {
+      --jefe-navy: #1a2942;
+      --jefe-navy-deep: #0f1a2e;
+      --jefe-gold: #C9A961;
+      --jefe-gold-soft: #E4CD8C;
+      --jefe-gold-deep: #8B7635;
+      --jefe-cream: #FAF7F0;
+      --jefe-danger: #B84040;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      background: var(--jefe-navy-deep);
+      color: var(--jefe-navy);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    .app-shell {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Header */
+    .header {
+      background: var(--jefe-navy);
+      padding: 20px 24px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--jefe-gold), transparent);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      object-fit: contain;
+      background: var(--jefe-navy-deep);
+    }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 500;
+      margin: 0;
+      color: #fff;
+      letter-spacing: 0.2px;
+    }
+    .header .brand {
+      font-size: 10px;
+      color: var(--jefe-gold-soft);
+      margin: 0 0 2px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+
+    /* Form */
+    .form {
+      padding: 20px 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .field-label {
+      font-size: 11px;
+      color: var(--jefe-navy);
+      opacity: 0.65;
+      display: block;
+      margin-bottom: 4px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .prefix, .suffix {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--jefe-navy);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .prefix { left: 12px; }
+    .suffix { right: 12px; }
+    .input {
+      width: 100%;
+      background: #fff;
+      border: 0.5px solid rgba(26, 41, 66, 0.25);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 16px; /* 16px prevents iOS zoom on focus */
+      color: var(--jefe-navy);
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .input.has-prefix { padding-left: 24px; }
+    .input.has-suffix { padding-right: 24px; }
+    .input:focus {
+      outline: none;
+      border-color: var(--jefe-gold);
+      box-shadow: 0 0 0 2px rgba(201, 169, 97, 0.25);
+    }
+
+    .equity-bar {
+      background: var(--jefe-cream);
+      border-left: 2px solid var(--jefe-gold);
+      padding: 9px 12px;
+      font-size: 11px;
+      color: var(--jefe-navy);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    .equity-bar span:first-child { opacity: 0.7; }
+    .equity-val {
+      font-weight: 500;
+      font-size: 13px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-calc {
+      margin-top: 2px;
+      background: var(--jefe-navy);
+      color: var(--jefe-gold);
+      border: 0.5px solid var(--jefe-gold);
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .btn-calc:active { background: var(--jefe-navy-deep); }
+
+    /* Stats */
+    .stats {
+      padding: 4px 22px 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: var(--jefe-cream);
+      border-radius: 8px;
+      padding: 11px 12px;
+      border: 0.5px solid rgba(201, 169, 97, 0.3);
+    }
+    .stat-label {
+      font-size: 10px;
+      color: var(--jefe-navy);
+      opacity: 0.65;
+      margin: 0 0 2px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    .stat-val {
+      font-size: 17px;
+      font-weight: 500;
+      margin: 0;
+      color: var(--jefe-navy);
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-featured {
+      background: var(--jefe-navy);
+      border-color: var(--jefe-gold);
+    }
+    .stat-featured .stat-label { color: var(--jefe-gold-soft); opacity: 0.9; }
+    .stat-featured .stat-val { color: var(--jefe-gold); }
+
+    /* Schedule */
+    .schedule-wrap {
+      padding: 0 22px 24px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      border-bottom: 0.5px solid rgba(26, 41, 66, 0.15);
+    }
+    .tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 10px 0;
+      font-size: 12px;
+      color: var(--jefe-navy);
+      opacity: 0.55;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab.active {
+      border-bottom-color: var(--jefe-gold);
+      opacity: 1;
+    }
+
+    .table-wrap {
+      max-height: 360px;
+      overflow-y: auto;
+      border: 0.5px solid rgba(26, 41, 66, 0.15);
+      border-radius: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    table.schedule {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      table-layout: fixed;
+      font-variant-numeric: tabular-nums;
+    }
+    table.schedule thead {
+      position: sticky;
+      top: 0;
+      background: var(--jefe-navy);
+      z-index: 1;
+    }
+    table.schedule th {
+      text-align: right;
+      padding: 9px 8px;
+      font-weight: 500;
+      color: var(--jefe-gold);
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    table.schedule th:first-child { text-align: left; width: 18%; }
+    table.schedule td {
+      padding: 8px;
+      text-align: right;
+      color: var(--jefe-navy);
+    }
+    table.schedule td:first-child {
+      text-align: left;
+      font-weight: 500;
+    }
+    table.schedule td.interest { color: var(--jefe-gold-deep); }
+    table.schedule tr:nth-child(even) { background: var(--jefe-cream); }
+    table.schedule tr { border-bottom: 0.5px solid rgba(26, 41, 66, 0.08); }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <header class="header">
+    <div class="header-inner">
+      <!-- Inline logo. Drop Jefe_Bank_Logo.png into the repo alongside index.html and it will render here. -->
+      <img src="Jefe_Bank_Logo.png" alt="Jefe Bank" class="logo">
+      <div>
+        <p class="brand">Jefe Bank</p>
+        <h1>Loan calculator</h1>
+      </div>
+    </div>
+  </header>
+
+  <section class="form">
+    <div>
+      <label class="field-label" for="amount">Purchase price</label>
+      <div class="input-wrap">
+        <span class="prefix">$</span>
+        <input id="amount" class="input has-prefix" type="number" inputmode="decimal" value="55000" step="500">
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div>
+        <label class="field-label" for="trade">Trade-in value</label>
+        <div class="input-wrap">
+          <span class="prefix">$</span>
+          <input id="trade" class="input has-prefix" type="number" inputmode="decimal" value="15000" step="500">
+        </div>
+      </div>
+      <div>
+        <label class="field-label" for="tradeOwed">Trade-in owed</label>
+        <div class="input-wrap">
+          <span class="prefix">$</span>
+          <input id="tradeOwed" class="input has-prefix" type="number" inputmode="decimal" value="0" step="500">
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label class="field-label" for="down">Down payment (cash)</label>
+      <div class="input-wrap">
+        <span class="prefix">$</span>
+        <input id="down" class="input has-prefix" type="number" inputmode="decimal" value="5000" step="500">
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div>
+        <label class="field-label" for="rate">Rate</label>
+        <div class="input-wrap">
+          <input id="rate" class="input has-suffix" type="number" inputmode="decimal" value="7.25" step="0.125">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+      <div>
+        <label class="field-label" for="term">Term</label>
+        <div class="input-wrap">
+          <input id="term" class="input has-suffix" type="number" inputmode="numeric" value="6" step="1">
+          <span class="suffix">yrs</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="equity-bar">
+      <span>Net trade equity</span>
+      <span id="tradeEquityVal" class="equity-val">$15,000</span>
+    </div>
+
+    <button id="calc" class="btn-calc" type="button">Calculate</button>
+  </section>
+
+  <section class="stats">
+    <div class="stat stat-featured">
+      <p class="stat-label">Monthly payment</p>
+      <p id="pmt" class="stat-val">$0.00</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">Amount financed</p>
+      <p id="principal" class="stat-val">$0</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">Total interest</p>
+      <p id="int" class="stat-val">$0</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">Total paid</p>
+      <p id="total" class="stat-val">$0</p>
+    </div>
+  </section>
+
+  <section class="schedule-wrap">
+    <div class="tabs">
+      <button id="tab-y" class="tab active" type="button">Yearly</button>
+      <button id="tab-m" class="tab" type="button">Monthly</button>
+    </div>
+    <div class="table-wrap">
+      <table class="schedule">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Principal</th>
+            <th>Interest</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+        <tbody id="sched-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  var fmt = function (n) { return '$' + Math.round(n).toLocaleString(); };
+  var fmt2 = function (n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+  var view = 'yearly';
+  var schedule = [];
+
+  function compute() {
+    var amount    = parseFloat(document.getElementById('amount').value) || 0;
+    var trade     = parseFloat(document.getElementById('trade').value) || 0;
+    var tradeOwed = parseFloat(document.getElementById('tradeOwed').value) || 0;
+    var down      = parseFloat(document.getElementById('down').value) || 0;
+    var rate      = parseFloat(document.getElementById('rate').value) || 0;
+    var term      = parseFloat(document.getElementById('term').value) || 0;
+
+    var netTrade = trade - tradeOwed;
+    var equityEl = document.getElementById('tradeEquityVal');
+    equityEl.textContent = (netTrade < 0 ? '-$' : '$') +
+      Math.abs(Math.round(netTrade)).toLocaleString();
+    equityEl.style.color = netTrade < 0 ? 'var(--jefe-danger)' : 'var(--jefe-navy)';
+
+    var principal = Math.max(0, amount - netTrade - down);
+    var n = Math.round(term * 12);
+    var r = rate / 100 / 12;
+
+    var pmt;
+    if (r === 0) {
+      pmt = n > 0 ? principal / n : 0;
+    } else {
+      pmt = principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    }
+
+    schedule = [];
+    var bal = principal;
+    for (var i = 1; i <= n; i++) {
+      var interest = bal * r;
+      var princPay = pmt - interest;
+      bal = Math.max(0, bal - princPay);
+      schedule.push({ n: i, principal: princPay, interest: interest, balance: bal });
+    }
+
+    var totalPaid = pmt * n;
+    var totalInterest = totalPaid - principal;
+
+    document.getElementById('pmt').textContent = isFinite(pmt) ? fmt2(pmt) : '$0.00';
+    document.getElementById('principal').textContent = fmt(principal);
+    document.getElementById('int').textContent = fmt(totalInterest);
+    document.getElementById('total').textContent = fmt(totalPaid);
+
+    render();
+  }
+
+  function render() {
+    var body = document.getElementById('sched-body');
+    body.innerHTML = '';
+    var rows = [];
+
+    if (view === 'yearly') {
+      var years = {};
+      schedule.forEach(function (row) {
+        var y = Math.ceil(row.n / 12);
+        if (!years[y]) years[y] = { principal: 0, interest: 0, balance: 0 };
+        years[y].principal += row.principal;
+        years[y].interest += row.interest;
+        years[y].balance = row.balance;
+      });
+      Object.keys(years).forEach(function (y) {
+        var d = years[y];
+        rows.push({ label: 'Yr ' + y, principal: d.principal, interest: d.interest, balance: d.balance });
+      });
+    } else {
+      schedule.forEach(function (row) {
+        rows.push({ label: String(row.n), principal: row.principal, interest: row.interest, balance: row.balance });
+      });
+    }
+
+    var frag = document.createDocumentFragment();
+    rows.forEach(function (r) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.label + '</td>' +
+        '<td>' + fmt(r.principal) + '</td>' +
+        '<td class="interest">' + fmt(r.interest) + '</td>' +
+        '<td>' + fmt(r.balance) + '</td>';
+      frag.appendChild(tr);
+    });
+    body.appendChild(frag);
+  }
+
+  function setTab(v) {
+    view = v;
+    document.getElementById('tab-y').classList.toggle('active', v === 'yearly');
+    document.getElementById('tab-m').classList.toggle('active', v === 'monthly');
+    render();
+  }
+
+  document.getElementById('calc').addEventListener('click', compute);
+  document.getElementById('tab-y').addEventListener('click', function () { setTab('yearly'); });
+  document.getElementById('tab-m').addEventListener('click', function () { setTab('monthly'); });
+
+  ['amount', 'trade', 'tradeOwed', 'down', 'rate', 'term'].forEach(function (id) {
+    var el = document.getElementById(id);
+    el.addEventListener('change', compute);
+    el.addEventListener('input', compute);
+  });
+
+  compute();
+})();
+</script>
+
+</body>
+</html>
