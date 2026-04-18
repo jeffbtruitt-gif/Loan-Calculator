@@ -12,12 +12,15 @@
   <meta name="theme-color" content="#0f1a2e">
 
   <!-- Home screen icon (the rounded-square version). iOS will auto-mask if needed. -->
-  <link rel="apple-touch-icon" href="Jefe_bank_iphone_logo.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="Jefe_bank_iphone_logo.png">
-  <link rel="icon" type="image/png" href="Jefe_bank_iphone_logo.png">
+  <link rel="apple-touch-icon" href="Jefe bank iphone logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="Jefe bank iphone logo.png">
+  <link rel="icon" type="image/png" href="Jefe bank iphone logo.png">
 
   <!-- Optional: web app manifest for Android / PWA parity -->
   <link rel="manifest" href="manifest.json">
+
+  <!-- Chart.js for the balance / breakdown graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
@@ -229,35 +232,75 @@
     .stat-featured .stat-label { color: var(--jefe-gold-soft); opacity: 0.9; }
     .stat-featured .stat-val { color: var(--jefe-gold); }
 
-    /* Schedule */
-    .schedule-wrap {
-      padding: 0 22px 24px;
+    /* Chart */
+    .chart-wrap {
+      padding: 4px 22px 0;
     }
-    .tabs {
+    .chart-controls {
       display: flex;
+      flex-direction: column;
       gap: 8px;
-      margin-bottom: 10px;
-      border-bottom: 0.5px solid rgba(26, 41, 66, 0.15);
+      margin-bottom: 12px;
     }
-    .tab {
+    .seg {
+      display: flex;
+      background: var(--jefe-cream);
+      border: 0.5px solid rgba(201, 169, 97, 0.3);
+      border-radius: 8px;
+      padding: 2px;
+    }
+    .seg button {
       flex: 1;
       background: transparent;
       border: none;
-      border-bottom: 2px solid transparent;
-      padding: 10px 0;
-      font-size: 12px;
+      padding: 7px 8px;
+      font-size: 11px;
+      font-weight: 500;
       color: var(--jefe-navy);
-      opacity: 0.55;
+      opacity: 0.6;
       cursor: pointer;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      font-family: inherit;
+      border-radius: 6px;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, color 0.15s, opacity 0.15s;
+    }
+    .seg button.active {
+      background: var(--jefe-navy);
+      color: var(--jefe-gold);
+      opacity: 1;
+    }
+    .chart-box {
+      background: #fff;
+      border: 0.5px solid rgba(26, 41, 66, 0.15);
+      border-radius: 8px;
+      padding: 12px 8px 8px;
+      height: 240px;
+      position: relative;
+    }
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--jefe-navy);
+      opacity: 0.75;
+      letter-spacing: 0.4px;
       text-transform: uppercase;
       font-weight: 500;
-      font-family: inherit;
-      -webkit-tap-highlight-color: transparent;
     }
-    .tab.active {
-      border-bottom-color: var(--jefe-gold);
-      opacity: 1;
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* Schedule */
+    .schedule-wrap {
+      padding: 18px 22px 24px;
     }
 
     .table-wrap {
@@ -310,8 +353,8 @@
 
   <header class="header">
     <div class="header-inner">
-      <!-- Inline logo. Drop Jefe_Bank_Logo.png into the repo alongside index.html and it will render here. -->
-      <img src="Jefe_Bank_Logo.png" alt="Jefe Bank" class="logo">
+      <!-- Inline logo. Filename matches the repo: "Jefe Bank Logo.png" with spaces. -->
+      <img src="Jefe Bank Logo.png" alt="Jefe Bank" class="logo">
       <div>
         <p class="brand">Jefe Bank</p>
         <h1>Loan calculator</h1>
@@ -397,11 +440,26 @@
     </div>
   </section>
 
-  <section class="schedule-wrap">
-    <div class="tabs">
-      <button id="tab-y" class="tab active" type="button">Yearly</button>
-      <button id="tab-m" class="tab" type="button">Monthly</button>
+  <section class="chart-wrap">
+    <div class="chart-controls">
+      <div class="seg" role="tablist" aria-label="Chart mode">
+        <button id="mode-balance" class="active" type="button">Balance</button>
+        <button id="mode-split" type="button">Principal + Interest</button>
+      </div>
+      <div class="seg" role="tablist" aria-label="Time period">
+        <button id="gran-year" class="active" type="button">Yearly</button>
+        <button id="gran-month" type="button">Monthly</button>
+      </div>
     </div>
+    <div class="chart-box">
+      <canvas id="chart"></canvas>
+    </div>
+    <div id="legend" class="legend">
+      <div class="legend-item"><span class="legend-swatch" style="background: #1a2942;"></span>Remaining balance</div>
+    </div>
+  </section>
+
+  <section class="schedule-wrap">
     <div class="table-wrap">
       <table class="schedule">
         <thead>
@@ -421,12 +479,25 @@
 
 <script>
 (function () {
+  var NAVY = '#1a2942';
+  var GOLD = '#C9A961';
+  var GOLD_DEEP = '#8B7635';
+
   var fmt = function (n) { return '$' + Math.round(n).toLocaleString(); };
+  var fmtShort = function (n) {
+    var abs = Math.abs(n);
+    if (abs >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+    if (abs >= 1e3) return '$' + Math.round(n / 1e3) + 'k';
+    return '$' + Math.round(n);
+  };
   var fmt2 = function (n) {
     return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
-  var view = 'yearly';
+
+  var chartMode = 'balance';     // 'balance' | 'split'
+  var chartGran = 'year';        // 'year' | 'month' — drives both chart and schedule table
   var schedule = [];
+  var chart = null;
 
   function compute() {
     var amount    = parseFloat(document.getElementById('amount').value) || 0;
@@ -470,15 +541,16 @@
     document.getElementById('int').textContent = fmt(totalInterest);
     document.getElementById('total').textContent = fmt(totalPaid);
 
-    render();
+    renderTable();
+    renderChart();
   }
 
-  function render() {
+  function renderTable() {
     var body = document.getElementById('sched-body');
     body.innerHTML = '';
     var rows = [];
 
-    if (view === 'yearly') {
+    if (chartGran === 'year') {
       var years = {};
       schedule.forEach(function (row) {
         var y = Math.ceil(row.n / 12);
@@ -510,16 +582,166 @@
     body.appendChild(frag);
   }
 
-  function setTab(v) {
-    view = v;
-    document.getElementById('tab-y').classList.toggle('active', v === 'yearly');
-    document.getElementById('tab-m').classList.toggle('active', v === 'monthly');
-    render();
+  // Aggregate schedule to the chosen granularity.
+  // For balance: take the ending balance of the period.
+  // For principal/interest: the amount paid *in that period* (not cumulative).
+  function aggregate() {
+    if (chartGran === 'month') {
+      var labels = [];
+      var balance = [];
+      var periodPrincipal = [];
+      var periodInterest = [];
+      schedule.forEach(function (row) {
+        labels.push(row.n);
+        balance.push(row.balance);
+        periodPrincipal.push(row.principal);
+        periodInterest.push(row.interest);
+      });
+      return { labels: labels, balance: balance, periodPrincipal: periodPrincipal, periodInterest: periodInterest };
+    }
+    // yearly
+    var years = {};
+    schedule.forEach(function (row) {
+      var y = Math.ceil(row.n / 12);
+      if (!years[y]) years[y] = { principal: 0, interest: 0, balance: 0 };
+      years[y].principal += row.principal;
+      years[y].interest += row.interest;
+      years[y].balance = row.balance;
+    });
+    var lbls = [], bals = [], pp = [], pi = [];
+    Object.keys(years).forEach(function (y) {
+      var d = years[y];
+      lbls.push('Yr ' + y);
+      bals.push(d.balance);
+      pp.push(d.principal);
+      pi.push(d.interest);
+    });
+    return { labels: lbls, balance: bals, periodPrincipal: pp, periodInterest: pi };
+  }
+
+  function renderChart() {
+    var ctx = document.getElementById('chart').getContext('2d');
+    var agg = aggregate();
+    var legend = document.getElementById('legend');
+
+    var datasets;
+    if (chartMode === 'balance') {
+      datasets = [{
+        label: 'Remaining balance',
+        data: agg.balance,
+        backgroundColor: NAVY,
+        borderWidth: 0,
+        borderRadius: 2,
+        maxBarThickness: 28
+      }];
+      legend.innerHTML =
+        '<div class="legend-item"><span class="legend-swatch" style="background:' + NAVY + ';"></span>Remaining balance</div>';
+    } else {
+      datasets = [
+        {
+          label: 'Principal paid',
+          data: agg.periodPrincipal,
+          backgroundColor: NAVY,
+          borderWidth: 0,
+          borderRadius: 2,
+          maxBarThickness: 28,
+          stack: 'paid'
+        },
+        {
+          label: 'Interest paid',
+          data: agg.periodInterest,
+          backgroundColor: GOLD,
+          borderWidth: 0,
+          borderRadius: 2,
+          maxBarThickness: 28,
+          stack: 'paid'
+        }
+      ];
+      legend.innerHTML =
+        '<div class="legend-item"><span class="legend-swatch" style="background:' + NAVY + ';"></span>Principal paid</div>' +
+        '<div class="legend-item"><span class="legend-swatch" style="background:' + GOLD + ';"></span>Interest paid</div>';
+    }
+
+    var config = {
+      type: 'bar',
+      data: { labels: agg.labels, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 300 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: NAVY,
+            titleColor: GOLD,
+            bodyColor: '#fff',
+            borderColor: GOLD,
+            borderWidth: 0.5,
+            padding: 10,
+            titleFont: { size: 11, weight: '500' },
+            bodyFont: { size: 12 },
+            callbacks: {
+              label: function (ctx) {
+                return ctx.dataset.label + ': ' + fmt(ctx.parsed.y);
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: chartMode === 'split',
+            ticks: {
+              color: NAVY,
+              font: { size: 10 },
+              maxRotation: 0,
+              autoSkip: true,
+              autoSkipPadding: 8
+            },
+            grid: { display: false },
+            border: { color: 'rgba(26,41,66,0.15)' }
+          },
+          y: {
+            stacked: chartMode === 'split',
+            ticks: {
+              color: NAVY,
+              font: { size: 10 },
+              callback: function (v) { return fmtShort(v); }
+            },
+            grid: { color: 'rgba(26,41,66,0.06)' },
+            border: { display: false }
+          }
+        }
+      }
+    };
+
+    if (chart) {
+      chart.destroy();
+    }
+    chart = new Chart(ctx, config);
+  }
+
+  // --- Event wiring ---
+
+  function setChartMode(m) {
+    chartMode = m;
+    document.getElementById('mode-balance').classList.toggle('active', m === 'balance');
+    document.getElementById('mode-split').classList.toggle('active', m === 'split');
+    renderChart();
+  }
+
+  function setChartGran(g) {
+    chartGran = g;
+    document.getElementById('gran-year').classList.toggle('active', g === 'year');
+    document.getElementById('gran-month').classList.toggle('active', g === 'month');
+    renderChart();
+    renderTable();
   }
 
   document.getElementById('calc').addEventListener('click', compute);
-  document.getElementById('tab-y').addEventListener('click', function () { setTab('yearly'); });
-  document.getElementById('tab-m').addEventListener('click', function () { setTab('monthly'); });
+  document.getElementById('mode-balance').addEventListener('click', function () { setChartMode('balance'); });
+  document.getElementById('mode-split').addEventListener('click', function () { setChartMode('split'); });
+  document.getElementById('gran-year').addEventListener('click', function () { setChartGran('year'); });
+  document.getElementById('gran-month').addEventListener('click', function () { setChartGran('month'); });
 
   ['amount', 'trade', 'tradeOwed', 'down', 'rate', 'term'].forEach(function (id) {
     var el = document.getElementById(id);
@@ -527,7 +749,15 @@
     el.addEventListener('input', compute);
   });
 
-  compute();
+  // Chart.js may load after DOMContentLoaded since it's a CDN script. Wait for it.
+  function boot() {
+    if (typeof Chart === 'undefined') {
+      setTimeout(boot, 50);
+      return;
+    }
+    compute();
+  }
+  boot();
 })();
 </script>
 
