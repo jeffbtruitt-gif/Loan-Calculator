@@ -536,7 +536,20 @@
       font-size: 8px;
     }
     table.stress-table tr.current {
+      background: rgba(201, 169, 97, 0.18) !important;
       box-shadow: inset 3px 0 0 var(--jefe-gold);
+    }
+    table.stress-table tr.current td {
+      color: var(--jefe-navy);
+      font-weight: 500;
+    }
+    /* When the baseline row is also the current selection, keep baseline styling */
+    table.stress-table tr.baseline.current {
+      background: var(--jefe-navy) !important;
+      box-shadow: inset 3px 0 0 var(--jefe-gold-soft);
+    }
+    table.stress-table tr.baseline.current td {
+      color: var(--jefe-gold);
     }
   </style>
 </head>
@@ -556,10 +569,10 @@
 
   <nav class="tab-bar" id="tabBar" aria-label="Views">
     <button class="tab-pill active" data-tab="0" type="button">Calculator</button>
-    <button class="tab-pill" data-tab="1" type="button">Purchase price</button>
-    <button class="tab-pill" data-tab="2" type="button">Trade-in</button>
-    <button class="tab-pill" data-tab="3" type="button">Down payment</button>
-    <button class="tab-pill" data-tab="4" type="button">Rate</button>
+    <button class="tab-pill" data-tab="1" type="button">Rate</button>
+    <button class="tab-pill" data-tab="2" type="button">Purchase price</button>
+    <button class="tab-pill" data-tab="3" type="button">Trade-in</button>
+    <button class="tab-pill" data-tab="4" type="button">Down payment</button>
     <button class="tab-pill" data-tab="5" type="button">Term</button>
   </nav>
 
@@ -668,8 +681,47 @@
 
     </div>
 
-    <!-- ========== TAB 1: Purchase price stress ========== -->
-    <div class="tab-panel stress-panel" id="panel-1" data-var="amount">
+    <!-- ========== TAB 1: Rate stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-1" data-var="rate">
+      <section class="stress-header">
+        <p class="stress-title">Stress test</p>
+        <p class="stress-subtitle">How does the loan change if the <strong>rate</strong> moves? Everything else stays the same.</p>
+      </section>
+      <div class="pinned-bar" data-role="pinned"></div>
+      <section class="scrub-wrap">
+        <div class="scrub-readout">
+          <div>
+            <div class="scrub-readout-mini">Rate</div>
+            <div data-role="val" class="scrub-readout-val">0%</div>
+          </div>
+          <div data-role="delta" class="scrub-readout-delta">baseline</div>
+        </div>
+        <input data-role="scrub" class="scrub" type="range" min="0" max="20" value="10" step="1">
+        <div class="scrub-ticks">
+          <span data-role="min"></span>
+          <span>baseline</span>
+          <span data-role="max"></span>
+        </div>
+      </section>
+      <section class="stats">
+        <div class="stat stat-featured"><p class="stat-label">Monthly payment</p><p data-role="pmt" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Amount financed</p><p data-role="financed" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total interest</p><p data-role="int" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total paid</p><p data-role="total" class="stat-val">$0</p></div>
+      </section>
+      <section class="stress-table-wrap">
+        <p class="stress-section-label">Scenarios across the range</p>
+        <div class="stress-table-box">
+          <table class="stress-table">
+            <thead><tr><th>Rate</th><th>Financed</th><th>Payment</th><th>Interest</th><th>Total</th></tr></thead>
+            <tbody data-role="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========== TAB 2: Purchase price stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-2" data-var="amount">
       <section class="stress-header">
         <p class="stress-title">Stress test</p>
         <p class="stress-subtitle">How does the loan change if the <strong>purchase price</strong> moves? Everything else stays the same.</p>
@@ -707,8 +759,8 @@
       </section>
     </div>
 
-    <!-- ========== TAB 2: Trade-in stress ========== -->
-    <div class="tab-panel stress-panel" id="panel-2" data-var="trade">
+    <!-- ========== TAB 3: Trade-in stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-3" data-var="trade">
       <section class="stress-header">
         <p class="stress-title">Stress test</p>
         <p class="stress-subtitle">How does the loan change if the <strong>trade-in value</strong> moves? Everything else stays the same.</p>
@@ -746,8 +798,8 @@
       </section>
     </div>
 
-    <!-- ========== TAB 3: Down payment stress ========== -->
-    <div class="tab-panel stress-panel" id="panel-3" data-var="down">
+    <!-- ========== TAB 4: Down payment stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-4" data-var="down">
       <section class="stress-header">
         <p class="stress-title">Stress test</p>
         <p class="stress-subtitle">How does the loan change if the <strong>down payment</strong> moves? Everything else stays the same.</p>
@@ -779,45 +831,6 @@
         <div class="stress-table-box">
           <table class="stress-table">
             <thead><tr><th>Down</th><th>Financed</th><th>Payment</th><th>Interest</th><th>Total</th></tr></thead>
-            <tbody data-role="tbody"></tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
-    <!-- ========== TAB 4: Rate stress ========== -->
-    <div class="tab-panel stress-panel" id="panel-4" data-var="rate">
-      <section class="stress-header">
-        <p class="stress-title">Stress test</p>
-        <p class="stress-subtitle">How does the loan change if the <strong>rate</strong> moves? Everything else stays the same.</p>
-      </section>
-      <div class="pinned-bar" data-role="pinned"></div>
-      <section class="scrub-wrap">
-        <div class="scrub-readout">
-          <div>
-            <div class="scrub-readout-mini">Rate</div>
-            <div data-role="val" class="scrub-readout-val">0%</div>
-          </div>
-          <div data-role="delta" class="scrub-readout-delta">baseline</div>
-        </div>
-        <input data-role="scrub" class="scrub" type="range" min="0" max="20" value="10" step="1">
-        <div class="scrub-ticks">
-          <span data-role="min"></span>
-          <span>baseline</span>
-          <span data-role="max"></span>
-        </div>
-      </section>
-      <section class="stats">
-        <div class="stat stat-featured"><p class="stat-label">Monthly payment</p><p data-role="pmt" class="stat-val">$0</p></div>
-        <div class="stat"><p class="stat-label">Amount financed</p><p data-role="financed" class="stat-val">$0</p></div>
-        <div class="stat"><p class="stat-label">Total interest</p><p data-role="int" class="stat-val">$0</p></div>
-        <div class="stat"><p class="stat-label">Total paid</p><p data-role="total" class="stat-val">$0</p></div>
-      </section>
-      <section class="stress-table-wrap">
-        <p class="stress-section-label">Scenarios across the range</p>
-        <div class="stress-table-box">
-          <table class="stress-table">
-            <thead><tr><th>Rate</th><th>Financed</th><th>Payment</th><th>Interest</th><th>Total</th></tr></thead>
             <tbody data-role="tbody"></tbody>
           </table>
         </div>
