@@ -5,21 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <title>Jefe Bank — Loan Calculator</title>
 
-  <!-- iPhone home screen / PWA metadata -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Jefe Bank">
   <meta name="theme-color" content="#0f1a2e">
 
-  <!-- Home screen icon (the rounded-square version). iOS will auto-mask if needed. -->
   <link rel="apple-touch-icon" href="Jefe bank iphone logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="Jefe bank iphone logo.png">
   <link rel="icon" type="image/png" href="Jefe bank iphone logo.png">
 
-  <!-- Optional: web app manifest for Android / PWA parity -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- Chart.js for the balance / breakdown graph -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
@@ -44,22 +40,26 @@
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
       min-height: 100dvh;
+      overflow-x: hidden;
     }
 
     .app-shell {
       max-width: 480px;
       margin: 0 auto;
       background: #fff;
-      min-height: 100vh;
-      min-height: 100dvh;
+      height: 100vh;
+      height: 100dvh;
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* Header */
     .header {
       background: var(--jefe-navy);
-      padding: 20px 24px 22px;
+      padding: 20px 24px 18px;
       position: relative;
       overflow: hidden;
     }
@@ -99,9 +99,67 @@
       opacity: 0.9;
     }
 
+    /* Tab bar (pinned under header) */
+    .tab-bar {
+      background: var(--jefe-navy);
+      padding: 0 14px 10px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-pill {
+      background: transparent;
+      border: 0.5px solid rgba(201, 169, 97, 0.35);
+      color: var(--jefe-gold-soft);
+      padding: 7px 14px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-pill.active {
+      background: var(--jefe-gold);
+      color: var(--jefe-navy);
+      border-color: var(--jefe-gold);
+    }
+
+    /* Swipeable tab panels
+       Panels container scrolls horizontally between tabs.
+       Each panel scrolls vertically for its own content. */
+    .tab-panels {
+      flex: 1 1 0;
+      min-height: 0;
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tab-panels::-webkit-scrollbar { display: none; }
+    .tab-panel {
+      flex: 0 0 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
     /* Form */
     .form {
-      padding: 20px 22px 18px;
+      padding: 18px 22px 14px;
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -121,9 +179,7 @@
       text-transform: uppercase;
       font-weight: 500;
     }
-    .input-wrap {
-      position: relative;
-    }
+    .input-wrap { position: relative; }
     .prefix, .suffix {
       position: absolute;
       top: 50%;
@@ -141,7 +197,7 @@
       border: 0.5px solid rgba(26, 41, 66, 0.25);
       border-radius: 8px;
       padding: 10px 12px;
-      font-size: 16px; /* 16px prevents iOS zoom on focus */
+      font-size: 16px;
       color: var(--jefe-navy);
       font-family: inherit;
       -webkit-appearance: none;
@@ -154,46 +210,6 @@
       border-color: var(--jefe-gold);
       box-shadow: 0 0 0 2px rgba(201, 169, 97, 0.25);
     }
-
-    .equity-bar {
-      background: var(--jefe-cream);
-      border-left: 2px solid var(--jefe-gold);
-      padding: 9px 12px;
-      font-size: 11px;
-      color: var(--jefe-navy);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-      font-weight: 500;
-    }
-    .equity-bar span:first-child { opacity: 0.7; }
-    .equity-val {
-      font-weight: 500;
-      font-size: 13px;
-      text-transform: none;
-      letter-spacing: 0;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .btn-calc {
-      margin-top: 2px;
-      background: var(--jefe-navy);
-      color: var(--jefe-gold);
-      border: 0.5px solid var(--jefe-gold);
-      border-radius: 8px;
-      padding: 13px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      font-family: inherit;
-      -webkit-tap-highlight-color: transparent;
-      transition: background 0.15s;
-    }
-    .btn-calc:active { background: var(--jefe-navy-deep); }
 
     /* Stats */
     .stats {
@@ -302,7 +318,6 @@
     .schedule-wrap {
       padding: 18px 22px 24px;
     }
-
     .table-wrap {
       max-height: 360px;
       overflow-y: auto;
@@ -345,6 +360,184 @@
     table.schedule td.interest { color: var(--jefe-gold-deep); }
     table.schedule tr:nth-child(even) { background: var(--jefe-cream); }
     table.schedule tr { border-bottom: 0.5px solid rgba(26, 41, 66, 0.08); }
+
+    /* Stress-test panel */
+    .stress-header { padding: 18px 22px 10px; }
+    .stress-title {
+      font-size: 11px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--jefe-navy);
+      opacity: 0.65;
+      margin: 0 0 4px;
+    }
+    .stress-subtitle {
+      font-size: 14px;
+      color: var(--jefe-navy);
+      margin: 0;
+      line-height: 1.45;
+    }
+    .stress-subtitle strong { font-weight: 500; }
+
+    .pinned-bar {
+      margin: 0 22px 14px;
+      background: var(--jefe-cream);
+      border: 0.5px solid rgba(201, 169, 97, 0.3);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      font-size: 11px;
+    }
+    .pinned-item { display: flex; flex-direction: column; gap: 1px; }
+    .pinned-label {
+      font-size: 9px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: var(--jefe-navy);
+      opacity: 0.6;
+      font-weight: 500;
+    }
+    .pinned-val {
+      font-size: 12px;
+      color: var(--jefe-navy);
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+
+    .scrub-wrap { padding: 4px 22px 14px; }
+    .scrub-readout {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .scrub-readout-mini {
+      font-size: 10px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--jefe-navy);
+      opacity: 0.6;
+      margin-bottom: 2px;
+    }
+    .scrub-readout-val {
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--jefe-navy);
+      font-variant-numeric: tabular-nums;
+    }
+    .scrub-readout-delta {
+      font-size: 12px;
+      color: var(--jefe-navy);
+      opacity: 0.6;
+      font-variant-numeric: tabular-nums;
+    }
+    .scrub-readout-delta.pos { color: var(--jefe-danger); opacity: 1; }
+    .scrub-readout-delta.neg { color: #2E7D52; opacity: 1; }
+
+    input[type="range"].scrub {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(26,41,66,0.12);
+      outline: none;
+      margin: 10px 0 6px;
+    }
+    input[type="range"].scrub::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--jefe-navy);
+      border: 2px solid var(--jefe-gold);
+      cursor: pointer;
+    }
+    input[type="range"].scrub::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--jefe-navy);
+      border: 2px solid var(--jefe-gold);
+      cursor: pointer;
+    }
+    .scrub-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--jefe-navy);
+      opacity: 0.55;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stress-table-wrap { padding: 8px 22px 24px; }
+    .stress-section-label {
+      font-size: 10px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--jefe-navy);
+      opacity: 0.6;
+      margin: 0 0 8px;
+    }
+    .stress-table-box {
+      border: 0.5px solid rgba(26, 41, 66, 0.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    table.stress-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      table-layout: fixed;
+      font-variant-numeric: tabular-nums;
+    }
+    table.stress-table thead {
+      background: var(--jefe-navy);
+    }
+    table.stress-table th {
+      text-align: right;
+      padding: 8px 6px;
+      font-weight: 500;
+      color: var(--jefe-gold);
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    table.stress-table th:first-child { text-align: left; }
+    table.stress-table td {
+      padding: 8px 6px;
+      text-align: right;
+      color: var(--jefe-navy);
+    }
+    table.stress-table td:first-child {
+      text-align: left;
+      font-weight: 500;
+    }
+    table.stress-table tr:nth-child(even) { background: var(--jefe-cream); }
+    table.stress-table tr { border-bottom: 0.5px solid rgba(26, 41, 66, 0.08); }
+    table.stress-table tr.baseline {
+      background: var(--jefe-navy) !important;
+    }
+    table.stress-table tr.baseline td {
+      color: var(--jefe-gold);
+      font-weight: 500;
+      position: relative;
+    }
+    table.stress-table tr.baseline td:first-child::before {
+      content: "●";
+      color: var(--jefe-gold);
+      margin-right: 4px;
+      font-size: 8px;
+    }
+    table.stress-table tr.current {
+      box-shadow: inset 3px 0 0 var(--jefe-gold);
+    }
   </style>
 </head>
 <body>
@@ -353,7 +546,6 @@
 
   <header class="header">
     <div class="header-inner">
-      <!-- Inline logo. Filename matches the repo: "Jefe Bank Logo.png" with spaces. -->
       <img src="Jefe Bank Logo.png" alt="Jefe Bank" class="logo">
       <div>
         <p class="brand">Jefe Bank</p>
@@ -362,118 +554,316 @@
     </div>
   </header>
 
-  <section class="form">
-    <div>
-      <label class="field-label" for="amount">Purchase price</label>
-      <div class="input-wrap">
-        <span class="prefix">$</span>
-        <input id="amount" class="input has-prefix" type="number" inputmode="decimal" value="55000" step="500">
-      </div>
-    </div>
+  <nav class="tab-bar" id="tabBar" aria-label="Views">
+    <button class="tab-pill active" data-tab="0" type="button">Calculator</button>
+    <button class="tab-pill" data-tab="1" type="button">Purchase price</button>
+    <button class="tab-pill" data-tab="2" type="button">Trade-in</button>
+    <button class="tab-pill" data-tab="3" type="button">Down payment</button>
+    <button class="tab-pill" data-tab="4" type="button">Rate</button>
+    <button class="tab-pill" data-tab="5" type="button">Term</button>
+  </nav>
 
-    <div class="row-2">
-      <div>
-        <label class="field-label" for="trade">Trade-in value</label>
-        <div class="input-wrap">
-          <span class="prefix">$</span>
-          <input id="trade" class="input has-prefix" type="number" inputmode="decimal" value="15000" step="500">
+  <div class="tab-panels" id="tabPanels">
+
+    <!-- ========== TAB 0: Calculator ========== -->
+    <div class="tab-panel" id="panel-0">
+
+      <section class="form">
+        <div>
+          <label class="field-label" for="amount">Purchase price</label>
+          <div class="input-wrap">
+            <span class="prefix">$</span>
+            <input id="amount" class="input has-prefix" type="number" inputmode="decimal" value="55000" step="500">
+          </div>
         </div>
-      </div>
-      <div>
-        <label class="field-label" for="tradeOwed">Trade-in owed</label>
-        <div class="input-wrap">
-          <span class="prefix">$</span>
-          <input id="tradeOwed" class="input has-prefix" type="number" inputmode="decimal" value="0" step="500">
+
+        <div class="row-2">
+          <div>
+            <label class="field-label" for="trade">Trade-in value</label>
+            <div class="input-wrap">
+              <span class="prefix">$</span>
+              <input id="trade" class="input has-prefix" type="number" inputmode="decimal" value="15000" step="500">
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="down">Down payment</label>
+            <div class="input-wrap">
+              <span class="prefix">$</span>
+              <input id="down" class="input has-prefix" type="number" inputmode="decimal" value="5000" step="500">
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div>
-      <label class="field-label" for="down">Down payment (cash)</label>
-      <div class="input-wrap">
-        <span class="prefix">$</span>
-        <input id="down" class="input has-prefix" type="number" inputmode="decimal" value="5000" step="500">
-      </div>
-    </div>
-
-    <div class="row-2">
-      <div>
-        <label class="field-label" for="rate">Rate</label>
-        <div class="input-wrap">
-          <input id="rate" class="input has-suffix" type="number" inputmode="decimal" value="7.25" step="0.125">
-          <span class="suffix">%</span>
+        <div class="row-2">
+          <div>
+            <label class="field-label" for="rate">Rate</label>
+            <div class="input-wrap">
+              <input id="rate" class="input has-suffix" type="number" inputmode="decimal" value="7.25" step="0.125">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="term">Term</label>
+            <div class="input-wrap">
+              <input id="term" class="input has-suffix" type="number" inputmode="numeric" value="6" step="1">
+              <span class="suffix">yrs</span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div>
-        <label class="field-label" for="term">Term</label>
-        <div class="input-wrap">
-          <input id="term" class="input has-suffix" type="number" inputmode="numeric" value="6" step="1">
-          <span class="suffix">yrs</span>
+      </section>
+
+      <section class="stats">
+        <div class="stat stat-featured">
+          <p class="stat-label">Monthly payment</p>
+          <p id="pmt" class="stat-val">$0.00</p>
         </div>
-      </div>
+        <div class="stat">
+          <p class="stat-label">Amount financed</p>
+          <p id="principal" class="stat-val">$0</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Total interest</p>
+          <p id="int" class="stat-val">$0</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Total paid</p>
+          <p id="total" class="stat-val">$0</p>
+        </div>
+      </section>
+
+      <section class="chart-wrap">
+        <div class="chart-controls">
+          <div class="seg" role="tablist" aria-label="Chart mode">
+            <button id="mode-balance" class="active" type="button">Balance</button>
+            <button id="mode-split" type="button">Principal + Interest</button>
+          </div>
+          <div class="seg" role="tablist" aria-label="Time period">
+            <button id="gran-year" class="active" type="button">Yearly</button>
+            <button id="gran-month" type="button">Monthly</button>
+          </div>
+        </div>
+        <div class="chart-box">
+          <canvas id="chart"></canvas>
+        </div>
+        <div id="legend" class="legend">
+          <div class="legend-item"><span class="legend-swatch" style="background: #1a2942;"></span>Remaining balance</div>
+        </div>
+      </section>
+
+      <section class="schedule-wrap">
+        <div class="table-wrap">
+          <table class="schedule">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Principal</th>
+                <th>Interest</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody id="sched-body"></tbody>
+          </table>
+        </div>
+      </section>
+
     </div>
 
-    <div class="equity-bar">
-      <span>Net trade equity</span>
-      <span id="tradeEquityVal" class="equity-val">$15,000</span>
+    <!-- ========== TAB 1: Purchase price stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-1" data-var="amount">
+      <section class="stress-header">
+        <p class="stress-title">Stress test</p>
+        <p class="stress-subtitle">How does the loan change if the <strong>purchase price</strong> moves? Everything else stays the same.</p>
+      </section>
+      <div class="pinned-bar" data-role="pinned"></div>
+      <section class="scrub-wrap">
+        <div class="scrub-readout">
+          <div>
+            <div class="scrub-readout-mini">Purchase price</div>
+            <div data-role="val" class="scrub-readout-val">$0</div>
+          </div>
+          <div data-role="delta" class="scrub-readout-delta">baseline</div>
+        </div>
+        <input data-role="scrub" class="scrub" type="range" min="0" max="20" value="10" step="1">
+        <div class="scrub-ticks">
+          <span data-role="min"></span>
+          <span>baseline</span>
+          <span data-role="max"></span>
+        </div>
+      </section>
+      <section class="stats">
+        <div class="stat stat-featured"><p class="stat-label">Monthly payment</p><p data-role="pmt" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Amount financed</p><p data-role="financed" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total interest</p><p data-role="int" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total paid</p><p data-role="total" class="stat-val">$0</p></div>
+      </section>
+      <section class="stress-table-wrap">
+        <p class="stress-section-label">Scenarios across the range</p>
+        <div class="stress-table-box">
+          <table class="stress-table">
+            <thead><tr><th>Price</th><th>Financed</th><th>Payment</th><th>Interest</th><th>Total</th></tr></thead>
+            <tbody data-role="tbody"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
-    <button id="calc" class="btn-calc" type="button">Calculate</button>
-  </section>
+    <!-- ========== TAB 2: Trade-in stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-2" data-var="trade">
+      <section class="stress-header">
+        <p class="stress-title">Stress test</p>
+        <p class="stress-subtitle">How does the loan change if the <strong>trade-in value</strong> moves? Everything else stays the same.</p>
+      </section>
+      <div class="pinned-bar" data-role="pinned"></div>
+      <section class="scrub-wrap">
+        <div class="scrub-readout">
+          <div>
+            <div class="scrub-readout-mini">Trade-in value</div>
+            <div data-role="val" class="scrub-readout-val">$0</div>
+          </div>
+          <div data-role="delta" class="scrub-readout-delta">baseline</div>
+        </div>
+        <input data-role="scrub" class="scrub" type="range" min="0" max="20" value="10" step="1">
+        <div class="scrub-ticks">
+          <span data-role="min"></span>
+          <span>baseline</span>
+          <span data-role="max"></span>
+        </div>
+      </section>
+      <section class="stats">
+        <div class="stat stat-featured"><p class="stat-label">Monthly payment</p><p data-role="pmt" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Amount financed</p><p data-role="financed" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total interest</p><p data-role="int" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total paid</p><p data-role="total" class="stat-val">$0</p></div>
+      </section>
+      <section class="stress-table-wrap">
+        <p class="stress-section-label">Scenarios across the range</p>
+        <div class="stress-table-box">
+          <table class="stress-table">
+            <thead><tr><th>Trade</th><th>Financed</th><th>Payment</th><th>Interest</th><th>Total</th></tr></thead>
+            <tbody data-role="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
 
-  <section class="stats">
-    <div class="stat stat-featured">
-      <p class="stat-label">Monthly payment</p>
-      <p id="pmt" class="stat-val">$0.00</p>
+    <!-- ========== TAB 3: Down payment stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-3" data-var="down">
+      <section class="stress-header">
+        <p class="stress-title">Stress test</p>
+        <p class="stress-subtitle">How does the loan change if the <strong>down payment</strong> moves? Everything else stays the same.</p>
+      </section>
+      <div class="pinned-bar" data-role="pinned"></div>
+      <section class="scrub-wrap">
+        <div class="scrub-readout">
+          <div>
+            <div class="scrub-readout-mini">Down payment</div>
+            <div data-role="val" class="scrub-readout-val">$0</div>
+          </div>
+          <div data-role="delta" class="scrub-readout-delta">baseline</div>
+        </div>
+        <input data-role="scrub" class="scrub" type="range" min="0" max="20" value="10" step="1">
+        <div class="scrub-ticks">
+          <span data-role="min"></span>
+          <span>baseline</span>
+          <span data-role="max"></span>
+        </div>
+      </section>
+      <section class="stats">
+        <div class="stat stat-featured"><p class="stat-label">Monthly payment</p><p data-role="pmt" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Amount financed</p><p data-role="financed" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total interest</p><p data-role="int" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total paid</p><p data-role="total" class="stat-val">$0</p></div>
+      </section>
+      <section class="stress-table-wrap">
+        <p class="stress-section-label">Scenarios across the range</p>
+        <div class="stress-table-box">
+          <table class="stress-table">
+            <thead><tr><th>Down</th><th>Financed</th><th>Payment</th><th>Interest</th><th>Total</th></tr></thead>
+            <tbody data-role="tbody"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
-    <div class="stat">
-      <p class="stat-label">Amount financed</p>
-      <p id="principal" class="stat-val">$0</p>
-    </div>
-    <div class="stat">
-      <p class="stat-label">Total interest</p>
-      <p id="int" class="stat-val">$0</p>
-    </div>
-    <div class="stat">
-      <p class="stat-label">Total paid</p>
-      <p id="total" class="stat-val">$0</p>
-    </div>
-  </section>
 
-  <section class="chart-wrap">
-    <div class="chart-controls">
-      <div class="seg" role="tablist" aria-label="Chart mode">
-        <button id="mode-balance" class="active" type="button">Balance</button>
-        <button id="mode-split" type="button">Principal + Interest</button>
-      </div>
-      <div class="seg" role="tablist" aria-label="Time period">
-        <button id="gran-year" class="active" type="button">Yearly</button>
-        <button id="gran-month" type="button">Monthly</button>
-      </div>
+    <!-- ========== TAB 4: Rate stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-4" data-var="rate">
+      <section class="stress-header">
+        <p class="stress-title">Stress test</p>
+        <p class="stress-subtitle">How does the loan change if the <strong>rate</strong> moves? Everything else stays the same.</p>
+      </section>
+      <div class="pinned-bar" data-role="pinned"></div>
+      <section class="scrub-wrap">
+        <div class="scrub-readout">
+          <div>
+            <div class="scrub-readout-mini">Rate</div>
+            <div data-role="val" class="scrub-readout-val">0%</div>
+          </div>
+          <div data-role="delta" class="scrub-readout-delta">baseline</div>
+        </div>
+        <input data-role="scrub" class="scrub" type="range" min="0" max="20" value="10" step="1">
+        <div class="scrub-ticks">
+          <span data-role="min"></span>
+          <span>baseline</span>
+          <span data-role="max"></span>
+        </div>
+      </section>
+      <section class="stats">
+        <div class="stat stat-featured"><p class="stat-label">Monthly payment</p><p data-role="pmt" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Amount financed</p><p data-role="financed" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total interest</p><p data-role="int" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total paid</p><p data-role="total" class="stat-val">$0</p></div>
+      </section>
+      <section class="stress-table-wrap">
+        <p class="stress-section-label">Scenarios across the range</p>
+        <div class="stress-table-box">
+          <table class="stress-table">
+            <thead><tr><th>Rate</th><th>Financed</th><th>Payment</th><th>Interest</th><th>Total</th></tr></thead>
+            <tbody data-role="tbody"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
-    <div class="chart-box">
-      <canvas id="chart"></canvas>
-    </div>
-    <div id="legend" class="legend">
-      <div class="legend-item"><span class="legend-swatch" style="background: #1a2942;"></span>Remaining balance</div>
-    </div>
-  </section>
 
-  <section class="schedule-wrap">
-    <div class="table-wrap">
-      <table class="schedule">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Principal</th>
-            <th>Interest</th>
-            <th>Balance</th>
-          </tr>
-        </thead>
-        <tbody id="sched-body"></tbody>
-      </table>
+    <!-- ========== TAB 5: Term stress ========== -->
+    <div class="tab-panel stress-panel" id="panel-5" data-var="term">
+      <section class="stress-header">
+        <p class="stress-title">Stress test</p>
+        <p class="stress-subtitle">How does the loan change if the <strong>term</strong> moves? Everything else stays the same.</p>
+      </section>
+      <div class="pinned-bar" data-role="pinned"></div>
+      <section class="scrub-wrap">
+        <div class="scrub-readout">
+          <div>
+            <div class="scrub-readout-mini">Term</div>
+            <div data-role="val" class="scrub-readout-val">0 yrs</div>
+          </div>
+          <div data-role="delta" class="scrub-readout-delta">baseline</div>
+        </div>
+        <input data-role="scrub" class="scrub" type="range" min="0" max="20" value="10" step="1">
+        <div class="scrub-ticks">
+          <span data-role="min"></span>
+          <span>baseline</span>
+          <span data-role="max"></span>
+        </div>
+      </section>
+      <section class="stats">
+        <div class="stat stat-featured"><p class="stat-label">Monthly payment</p><p data-role="pmt" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Amount financed</p><p data-role="financed" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total interest</p><p data-role="int" class="stat-val">$0</p></div>
+        <div class="stat"><p class="stat-label">Total paid</p><p data-role="total" class="stat-val">$0</p></div>
+      </section>
+      <section class="stress-table-wrap">
+        <p class="stress-section-label">Scenarios across the range</p>
+        <div class="stress-table-box">
+          <table class="stress-table">
+            <thead><tr><th>Term</th><th>Financed</th><th>Payment</th><th>Interest</th><th>Total</th></tr></thead>
+            <tbody data-role="tbody"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
-  </section>
+
+  </div>
 
 </div>
 
@@ -481,68 +871,83 @@
 (function () {
   var NAVY = '#1a2942';
   var GOLD = '#C9A961';
-  var GOLD_DEEP = '#8B7635';
 
   var fmt = function (n) { return '$' + Math.round(n).toLocaleString(); };
   var fmtShort = function (n) {
     var abs = Math.abs(n);
-    if (abs >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
-    if (abs >= 1e3) return '$' + Math.round(n / 1e3) + 'k';
+    if (abs >= 1e6) {
+      // Millions: one decimal, e.g. $1.4M, $1M (no trailing .0)
+      var m = (n / 1e6).toFixed(1).replace(/\.0$/, '');
+      return '$' + m + 'M';
+    }
+    if (abs >= 1e3) {
+      // Thousands: one decimal, e.g. $7.6k, $8k (no trailing .0)
+      var k = (n / 1e3).toFixed(1).replace(/\.0$/, '');
+      return '$' + k + 'k';
+    }
     return '$' + Math.round(n);
   };
   var fmt2 = function (n) {
     return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  var chartMode = 'balance';     // 'balance' | 'split'
-  var chartGran = 'year';        // 'year' | 'month' — drives both chart and schedule table
-  var schedule = [];
-  var chart = null;
-
-  function compute() {
-    var amount    = parseFloat(document.getElementById('amount').value) || 0;
-    var trade     = parseFloat(document.getElementById('trade').value) || 0;
-    var tradeOwed = parseFloat(document.getElementById('tradeOwed').value) || 0;
-    var down      = parseFloat(document.getElementById('down').value) || 0;
-    var rate      = parseFloat(document.getElementById('rate').value) || 0;
-    var term      = parseFloat(document.getElementById('term').value) || 0;
-
-    var netTrade = trade - tradeOwed;
-    var equityEl = document.getElementById('tradeEquityVal');
-    equityEl.textContent = (netTrade < 0 ? '-$' : '$') +
-      Math.abs(Math.round(netTrade)).toLocaleString();
-    equityEl.style.color = netTrade < 0 ? 'var(--jefe-danger)' : 'var(--jefe-navy)';
-
-    var principal = Math.max(0, amount - netTrade - down);
-    var n = Math.round(term * 12);
-    var r = rate / 100 / 12;
+  // Shared amortization core
+  function amortize(purchasePrice, tradeValue, downPayment, annualRatePct, years) {
+    var financed = Math.max(0, purchasePrice - tradeValue - downPayment);
+    var n = Math.round(years * 12);
+    var r = (annualRatePct / 100) / 12;
 
     var pmt;
     if (r === 0) {
-      pmt = n > 0 ? principal / n : 0;
+      pmt = n > 0 ? financed / n : 0;
     } else {
-      pmt = principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+      pmt = financed * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
     }
 
-    schedule = [];
-    var bal = principal;
+    var sched = [];
+    var bal = financed;
     for (var i = 1; i <= n; i++) {
       var interest = bal * r;
       var princPay = pmt - interest;
       bal = Math.max(0, bal - princPay);
-      schedule.push({ n: i, principal: princPay, interest: interest, balance: bal });
+      sched.push({ n: i, principal: princPay, interest: interest, balance: bal });
     }
 
     var totalPaid = pmt * n;
-    var totalInterest = totalPaid - principal;
+    var totalInterest = totalPaid - financed;
+    return { financed: financed, pmt: pmt, schedule: sched, totalPaid: totalPaid, totalInterest: totalInterest };
+  }
 
-    document.getElementById('pmt').textContent = isFinite(pmt) ? fmt2(pmt) : '$0.00';
-    document.getElementById('principal').textContent = fmt(principal);
-    document.getElementById('int').textContent = fmt(totalInterest);
-    document.getElementById('total').textContent = fmt(totalPaid);
+  function readInputs() {
+    return {
+      amount: parseFloat(document.getElementById('amount').value) || 0,
+      trade:  parseFloat(document.getElementById('trade').value) || 0,
+      down:   parseFloat(document.getElementById('down').value) || 0,
+      rate:   parseFloat(document.getElementById('rate').value) || 0,
+      term:   parseFloat(document.getElementById('term').value) || 0
+    };
+  }
+
+  // ========== TAB 0: Calculator ==========
+
+  var chartMode = 'balance';
+  var chartGran = 'year';
+  var scheduleCache = [];
+  var chart = null;
+
+  function compute() {
+    var v = readInputs();
+    var result = amortize(v.amount, v.trade, v.down, v.rate, v.term);
+    scheduleCache = result.schedule;
+
+    document.getElementById('pmt').textContent = isFinite(result.pmt) ? fmt2(result.pmt) : '$0.00';
+    document.getElementById('principal').textContent = fmt(result.financed);
+    document.getElementById('int').textContent = fmt(result.totalInterest);
+    document.getElementById('total').textContent = fmt(result.totalPaid);
 
     renderTable();
     renderChart();
+    rebuildStress();
   }
 
   function renderTable() {
@@ -552,7 +957,7 @@
 
     if (chartGran === 'year') {
       var years = {};
-      schedule.forEach(function (row) {
+      scheduleCache.forEach(function (row) {
         var y = Math.ceil(row.n / 12);
         if (!years[y]) years[y] = { principal: 0, interest: 0, balance: 0 };
         years[y].principal += row.principal;
@@ -564,7 +969,7 @@
         rows.push({ label: 'Yr ' + y, principal: d.principal, interest: d.interest, balance: d.balance });
       });
     } else {
-      schedule.forEach(function (row) {
+      scheduleCache.forEach(function (row) {
         rows.push({ label: String(row.n), principal: row.principal, interest: row.interest, balance: row.balance });
       });
     }
@@ -582,26 +987,19 @@
     body.appendChild(frag);
   }
 
-  // Aggregate schedule to the chosen granularity.
-  // For balance: take the ending balance of the period.
-  // For principal/interest: the amount paid *in that period* (not cumulative).
   function aggregate() {
     if (chartGran === 'month') {
-      var labels = [];
-      var balance = [];
-      var periodPrincipal = [];
-      var periodInterest = [];
-      schedule.forEach(function (row) {
+      var labels = [], balance = [], pp = [], pi = [];
+      scheduleCache.forEach(function (row) {
         labels.push(row.n);
         balance.push(row.balance);
-        periodPrincipal.push(row.principal);
-        periodInterest.push(row.interest);
+        pp.push(row.principal);
+        pi.push(row.interest);
       });
-      return { labels: labels, balance: balance, periodPrincipal: periodPrincipal, periodInterest: periodInterest };
+      return { labels: labels, balance: balance, periodPrincipal: pp, periodInterest: pi };
     }
-    // yearly
     var years = {};
-    schedule.forEach(function (row) {
+    scheduleCache.forEach(function (row) {
       var y = Math.ceil(row.n / 12);
       if (!years[y]) years[y] = { principal: 0, interest: 0, balance: 0 };
       years[y].principal += row.principal;
@@ -638,31 +1036,16 @@
         '<div class="legend-item"><span class="legend-swatch" style="background:' + NAVY + ';"></span>Remaining balance</div>';
     } else {
       datasets = [
-        {
-          label: 'Principal paid',
-          data: agg.periodPrincipal,
-          backgroundColor: NAVY,
-          borderWidth: 0,
-          borderRadius: 2,
-          maxBarThickness: 28,
-          stack: 'paid'
-        },
-        {
-          label: 'Interest paid',
-          data: agg.periodInterest,
-          backgroundColor: GOLD,
-          borderWidth: 0,
-          borderRadius: 2,
-          maxBarThickness: 28,
-          stack: 'paid'
-        }
+        { label: 'Principal paid', data: agg.periodPrincipal, backgroundColor: NAVY, borderWidth: 0, borderRadius: 2, maxBarThickness: 28, stack: 'paid' },
+        { label: 'Interest paid',  data: agg.periodInterest,  backgroundColor: GOLD, borderWidth: 0, borderRadius: 2, maxBarThickness: 28, stack: 'paid' }
       ];
       legend.innerHTML =
         '<div class="legend-item"><span class="legend-swatch" style="background:' + NAVY + ';"></span>Principal paid</div>' +
         '<div class="legend-item"><span class="legend-swatch" style="background:' + GOLD + ';"></span>Interest paid</div>';
     }
 
-    var config = {
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
       type: 'bar',
       data: { labels: agg.labels, datasets: datasets },
       options: {
@@ -672,55 +1055,29 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: NAVY,
-            titleColor: GOLD,
-            bodyColor: '#fff',
-            borderColor: GOLD,
-            borderWidth: 0.5,
-            padding: 10,
-            titleFont: { size: 11, weight: '500' },
-            bodyFont: { size: 12 },
-            callbacks: {
-              label: function (ctx) {
-                return ctx.dataset.label + ': ' + fmt(ctx.parsed.y);
-              }
-            }
+            backgroundColor: NAVY, titleColor: GOLD, bodyColor: '#fff',
+            borderColor: GOLD, borderWidth: 0.5, padding: 10,
+            titleFont: { size: 11, weight: '500' }, bodyFont: { size: 12 },
+            callbacks: { label: function (c) { return c.dataset.label + ': ' + fmt(c.parsed.y); } }
           }
         },
         scales: {
           x: {
             stacked: chartMode === 'split',
-            ticks: {
-              color: NAVY,
-              font: { size: 10 },
-              maxRotation: 0,
-              autoSkip: true,
-              autoSkipPadding: 8
-            },
+            ticks: { color: NAVY, font: { size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 8 },
             grid: { display: false },
             border: { color: 'rgba(26,41,66,0.15)' }
           },
           y: {
             stacked: chartMode === 'split',
-            ticks: {
-              color: NAVY,
-              font: { size: 10 },
-              callback: function (v) { return fmtShort(v); }
-            },
+            ticks: { color: NAVY, font: { size: 10 }, callback: function (v) { return fmtShort(v); } },
             grid: { color: 'rgba(26,41,66,0.06)' },
             border: { display: false }
           }
         }
       }
-    };
-
-    if (chart) {
-      chart.destroy();
-    }
-    chart = new Chart(ctx, config);
+    });
   }
-
-  // --- Event wiring ---
 
   function setChartMode(m) {
     chartMode = m;
@@ -728,7 +1085,6 @@
     document.getElementById('mode-split').classList.toggle('active', m === 'split');
     renderChart();
   }
-
   function setChartGran(g) {
     chartGran = g;
     document.getElementById('gran-year').classList.toggle('active', g === 'year');
@@ -737,24 +1093,293 @@
     renderTable();
   }
 
-  document.getElementById('calc').addEventListener('click', compute);
   document.getElementById('mode-balance').addEventListener('click', function () { setChartMode('balance'); });
   document.getElementById('mode-split').addEventListener('click', function () { setChartMode('split'); });
   document.getElementById('gran-year').addEventListener('click', function () { setChartGran('year'); });
   document.getElementById('gran-month').addEventListener('click', function () { setChartGran('month'); });
 
-  ['amount', 'trade', 'tradeOwed', 'down', 'rate', 'term'].forEach(function (id) {
+  ['amount', 'trade', 'down', 'rate', 'term'].forEach(function (id) {
     var el = document.getElementById(id);
     el.addEventListener('change', compute);
     el.addEventListener('input', compute);
   });
 
-  // Chart.js may load after DOMContentLoaded since it's a CDN script. Wait for it.
-  function boot() {
-    if (typeof Chart === 'undefined') {
-      setTimeout(boot, 50);
-      return;
+  // ========== Stress tabs (generic engine) ==========
+  //
+  // Each stress panel sweeps ONE variable while pinning the other four.
+  // A panel is marked with data-var="amount|trade|down|rate|term" and
+  // contains elements tagged with data-role="..." that this engine fills in.
+
+  var STEPS = 20; // 21 scenarios per panel
+
+  // Per-variable configuration:
+  //   rangeFor(baseline): [min, max] the sweep will cover
+  //   snap(value):        coerce a value to a valid input (e.g. integer years)
+  //   label(value):       short display used in the table's first column
+  //   bigLabel(value):    full display used in the big readout above the slider
+  //   unit:               suffix in the pinned bar for baseline values
+  var VAR_CONFIG = {
+    amount: {
+      rangeFor: function (base) { return [base * 0.5, base * 1.5]; },
+      snap: function (v) { return Math.round(v / 100) * 100; },
+      label: function (v) { return fmtShort(v); },
+      bigLabel: function (v) { return fmt(v); },
+      tickMin: function (base) { return fmtShort(base * 0.5); },
+      tickMax: function (base) { return fmtShort(base * 1.5); },
+      pinnedLabel: 'Price',
+      displayName: 'Purchase price'
+    },
+    trade: {
+      rangeFor: function (base) {
+        // If baseline trade is 0, give a nominal range to still show variation
+        if (base <= 0) return [0, 20000];
+        return [0, base * 2];
+      },
+      snap: function (v) { return Math.round(v / 100) * 100; },
+      label: function (v) { return fmtShort(v); },
+      bigLabel: function (v) { return fmt(v); },
+      tickMin: function (base) { return fmtShort(0); },
+      tickMax: function (base) { return fmtShort(base > 0 ? base * 2 : 20000); },
+      pinnedLabel: 'Trade-in',
+      displayName: 'Trade-in value'
+    },
+    down: {
+      rangeFor: function (base) {
+        if (base <= 0) return [0, 20000];
+        return [0, base * 3];
+      },
+      snap: function (v) { return Math.round(v / 100) * 100; },
+      label: function (v) { return fmtShort(v); },
+      bigLabel: function (v) { return fmt(v); },
+      tickMin: function (base) { return fmtShort(0); },
+      tickMax: function (base) { return fmtShort(base > 0 ? base * 3 : 20000); },
+      pinnedLabel: 'Down',
+      displayName: 'Down payment'
+    },
+    rate: {
+      // ±3 percentage points, clamped to [0, ∞)
+      rangeFor: function (base) { return [Math.max(0, base - 3), base + 3]; },
+      snap: function (v) { return Math.round(v * 8) / 8; }, // 1/8% increments (bank-style)
+      label: function (v) { return v.toFixed(3).replace(/\.?0+$/, '') + '%'; },
+      bigLabel: function (v) { return v.toFixed(3).replace(/\.?0+$/, '') + '%'; },
+      tickMin: function (base) { return (Math.max(0, base - 3)).toFixed(2).replace(/\.?0+$/, '') + '%'; },
+      tickMax: function (base) { return (base + 3).toFixed(2).replace(/\.?0+$/, '') + '%'; },
+      pinnedLabel: 'Rate',
+      displayName: 'Rate'
+    },
+    term: {
+      // 1 year to min(2x baseline, 30 years). Must be integer.
+      rangeFor: function (base) {
+        var max = Math.min(30, Math.max(base + 1, base * 2));
+        return [1, max];
+      },
+      snap: function (v) { return Math.max(1, Math.round(v)); },
+      label: function (v) { return Math.round(v) + ' yr' + (Math.round(v) === 1 ? '' : 's'); },
+      bigLabel: function (v) { return Math.round(v) + ' year' + (Math.round(v) === 1 ? '' : 's'); },
+      tickMin: function () { return '1 yr'; },
+      tickMax: function (base) {
+        var max = Math.min(30, Math.max(base + 1, base * 2));
+        return max + ' yrs';
+      },
+      pinnedLabel: 'Term',
+      displayName: 'Term'
     }
+  };
+
+  // One StressPanel per .stress-panel element in the DOM.
+  // Each holds a reference to its inputs and its own baseline snapshot.
+  function makeStressPanel(panelEl) {
+    var varName = panelEl.getAttribute('data-var');
+    var cfg = VAR_CONFIG[varName];
+
+    var els = {
+      pinned:   panelEl.querySelector('[data-role="pinned"]'),
+      val:      panelEl.querySelector('[data-role="val"]'),
+      delta:    panelEl.querySelector('[data-role="delta"]'),
+      scrub:    panelEl.querySelector('[data-role="scrub"]'),
+      tickMin:  panelEl.querySelector('[data-role="min"]'),
+      tickMax:  panelEl.querySelector('[data-role="max"]'),
+      pmt:      panelEl.querySelector('[data-role="pmt"]'),
+      financed: panelEl.querySelector('[data-role="financed"]'),
+      intEl:    panelEl.querySelector('[data-role="int"]'),
+      total:    panelEl.querySelector('[data-role="total"]'),
+      tbody:    panelEl.querySelector('[data-role="tbody"]')
+    };
+
+    var baseline = null; // snapshot of Calculator inputs at last rebuild
+
+    // Compute the swept variable's value at slider index i
+    function valueAt(idx) {
+      var range = cfg.rangeFor(baseline[varName]);
+      var raw = range[0] + (range[1] - range[0]) * (idx / STEPS);
+      return cfg.snap(raw);
+    }
+
+    // Build input set for amortize() with one variable overridden
+    function inputsAt(idx) {
+      var merged = {
+        amount: baseline.amount,
+        trade:  baseline.trade,
+        down:   baseline.down,
+        rate:   baseline.rate,
+        term:   baseline.term
+      };
+      merged[varName] = valueAt(idx);
+      return merged;
+    }
+
+    function runAmortize(inputs) {
+      return amortize(inputs.amount, inputs.trade, inputs.down, inputs.rate, inputs.term);
+    }
+
+    function rebuild(snapshot) {
+      baseline = snapshot;
+
+      // Pinned bar shows the four variables NOT being swept
+      var rateStr = (Math.round(baseline.rate * 1000) / 1000).toString();
+      var parts = [];
+      if (varName !== 'amount') parts.push({ label: 'Price', val: fmt(baseline.amount) });
+      if (varName !== 'trade')  parts.push({ label: 'Trade-in', val: fmt(baseline.trade) });
+      if (varName !== 'down')   parts.push({ label: 'Down', val: fmt(baseline.down) });
+      if (varName !== 'rate')   parts.push({ label: 'Rate', val: rateStr + '%' });
+      if (varName !== 'term')   parts.push({ label: 'Term', val: baseline.term + ' yrs' });
+
+      els.pinned.innerHTML = parts.map(function (p) {
+        return '<div class="pinned-item"><span class="pinned-label">' + p.label + '</span><span class="pinned-val">' + p.val + '</span></div>';
+      }).join('');
+
+      els.tickMin.textContent = cfg.tickMin(baseline[varName]);
+      els.tickMax.textContent = cfg.tickMax(baseline[varName]);
+
+      els.scrub.value = STEPS / 2;
+      renderTable();
+      update();
+    }
+
+    function update() {
+      if (!baseline) return;
+      var idx = parseInt(els.scrub.value, 10);
+      var inputs = inputsAt(idx);
+      var result = runAmortize(inputs);
+      var baseResult = runAmortize({ amount: baseline.amount, trade: baseline.trade, down: baseline.down, rate: baseline.rate, term: baseline.term });
+
+      els.val.textContent = cfg.bigLabel(inputs[varName]);
+
+      var deltaPmt = result.pmt - baseResult.pmt;
+      if (Math.abs(deltaPmt) < 0.5) {
+        els.delta.textContent = 'baseline';
+        els.delta.className = 'scrub-readout-delta';
+      } else {
+        var sign = deltaPmt > 0 ? '+' : '−';
+        els.delta.textContent = sign + fmt(Math.abs(deltaPmt)) + '/mo vs baseline';
+        els.delta.className = 'scrub-readout-delta ' + (deltaPmt > 0 ? 'pos' : 'neg');
+      }
+
+      els.pmt.textContent      = isFinite(result.pmt) ? fmt2(result.pmt) : '$0.00';
+      els.financed.textContent = fmt(result.financed);
+      els.intEl.textContent    = fmt(result.totalInterest);
+      els.total.textContent    = fmt(result.totalPaid);
+
+      var rows = els.tbody.querySelectorAll('tr');
+      rows.forEach(function (tr, i) {
+        tr.classList.toggle('current', i === idx);
+      });
+    }
+
+    function renderTable() {
+      if (!baseline) return;
+      els.tbody.innerHTML = '';
+      var baseIdx = STEPS / 2;
+      var frag = document.createDocumentFragment();
+      for (var i = 0; i <= STEPS; i++) {
+        var inputs = inputsAt(i);
+        var r = runAmortize(inputs);
+        var tr = document.createElement('tr');
+        if (i === baseIdx) tr.className = 'baseline';
+        tr.setAttribute('data-idx', i);
+        tr.innerHTML =
+          '<td>' + cfg.label(inputs[varName]) + '</td>' +
+          '<td>' + fmtShort(r.financed) + '</td>' +
+          '<td>' + fmtShort(r.pmt) + '</td>' +
+          '<td>' + fmtShort(r.totalInterest) + '</td>' +
+          '<td>' + fmtShort(r.totalPaid) + '</td>';
+        tr.addEventListener('click', function () {
+          var clickedIdx = parseInt(this.getAttribute('data-idx'), 10);
+          els.scrub.value = clickedIdx;
+          update();
+        });
+        frag.appendChild(tr);
+      }
+      els.tbody.appendChild(frag);
+    }
+
+    els.scrub.addEventListener('input', update);
+    els.scrub.addEventListener('change', update);
+
+    return { rebuild: rebuild };
+  }
+
+  // Instantiate one engine per stress panel and wire them to the Calculator
+  var stressPanels = Array.prototype.map.call(
+    document.querySelectorAll('.stress-panel'),
+    makeStressPanel
+  );
+
+  function rebuildStress() {
+    var snapshot = readInputs();
+    stressPanels.forEach(function (sp) { sp.rebuild(snapshot); });
+  }
+
+  // ========== Tab bar + swipe sync ==========
+
+  var panels = document.getElementById('tabPanels');
+  var pills = document.querySelectorAll('.tab-pill');
+
+  function activateTab(idx) {
+    pills.forEach(function (p) {
+      var isActive = parseInt(p.dataset.tab, 10) === idx;
+      p.classList.toggle('active', isActive);
+      // Keep the active pill visible if the tab bar is scrollable
+      if (isActive && p.scrollIntoView) {
+        p.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+    });
+  }
+
+  pills.forEach(function (p) {
+    p.addEventListener('click', function () {
+      var idx = parseInt(this.dataset.tab, 10);
+      var targetLeft = idx * panels.clientWidth;
+      // Try smooth scroll first; if the browser ignores it (snap interaction
+      // on iOS sometimes does), set scrollLeft directly as a fallback.
+      try {
+        panels.scrollTo({ left: targetLeft, behavior: 'smooth' });
+      } catch (e) {
+        panels.scrollLeft = targetLeft;
+      }
+      // Guarantee arrival after any in-flight animation
+      setTimeout(function () {
+        if (Math.abs(panels.scrollLeft - targetLeft) > 2) {
+          panels.scrollLeft = targetLeft;
+        }
+      }, 350);
+      activateTab(idx);
+    });
+  });
+
+  var scrollTimer = null;
+  panels.addEventListener('scroll', function () {
+    if (scrollTimer) clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () {
+      var idx = Math.round(panels.scrollLeft / panels.clientWidth);
+      activateTab(idx);
+    }, 80);
+  });
+
+  // ========== Boot ==========
+
+  function boot() {
+    if (typeof Chart === 'undefined') { setTimeout(boot, 50); return; }
     compute();
   }
   boot();
